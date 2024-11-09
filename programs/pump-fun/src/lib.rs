@@ -15,7 +15,7 @@ declare_id!("CecW3x9Ztd5fAi4azx44ESz8Z9xjWqi5suv1LYHyKoao");
 pub mod pump_fun {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        initialize::handler(ctx)
+    pub fn list(ctx: Context<List>, name: String) -> Result<()> {
+        ctx.accounts.list_token(name, &ctx.bumps)
     }
 }
