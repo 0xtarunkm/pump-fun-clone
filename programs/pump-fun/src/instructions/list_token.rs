@@ -1,6 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl:: 
-token_interface::{Mint, TokenInterface};
+use anchor_spl::token_interface::{Mint, TokenInterface};
 
 use crate::{Listing, ANCHOR_DISCRIMINATOR, LISTING_SEED, MINT_SEED};
 
@@ -38,23 +37,22 @@ pub struct List<'info> {
 }
 
 impl<'info> List<'info> {
-    pub fn list_token(
-        &mut self,
-        name: String,
-        bumps: &ListBumps,
-    ) -> Result<()> {
+    pub fn list_token(&mut self, name: String, bumps: &ListBumps) -> Result<()> {
         self.listing.set_inner(Listing {
             name,
             mint: self.mint.key(),
-            totat_mint_supply: 1000000,
             funding_goal: 350,
             funding_raised: 0,
-            available_tokens: 800000,
-            pool_mint_supply: 200000,
+            available_tokens: 800_000,
+            pool_mint_supply: 200_000,
+            base_price: 100_000,
+            k: 100,
+            multiplier: 1.05,
+            tokens_sold: 0,
             bump: bumps.mint,
-            authority_bump: bumps.authority
+            authority_bump: bumps.authority,
         });
-    
+
         Ok(())
     }
 }

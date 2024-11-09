@@ -1,6 +1,8 @@
 use anchor_lang::prelude::*;
-use anchor_spl::{associated_token::AssociatedToken, 
-    token_interface::{mint_to, Mint, MintTo, TokenAccount, TokenInterface}};
+use anchor_spl::{
+    associated_token::AssociatedToken,
+    token_interface::{mint_to, Mint, MintTo, TokenAccount, TokenInterface},
+};
 
 use crate::{Listing, LISTING_SEED, MINT_SEED};
 
@@ -18,18 +20,10 @@ pub struct MintToken<'info> {
         init_if_needed,
         payer = signer,
         associated_token::mint = mint,
-        associated_token::authority = authority,
+        associated_token::authority = signer,
         associated_token::token_program = token_program
     )]
     mint_vault: InterfaceAccount<'info, TokenAccount>,
-    #[account(
-        init_if_needed,
-        payer = signer,
-        associated_token::mint = mint,
-        associated_token::authority = authority,
-        associated_token::token_program = token_program
-    )]
-    trade_vault: InterfaceAccount<'info, TokenAccount>,
     /// CHECK: PDA that will own the mint
     #[account(
         seeds = [b"authority"],
@@ -49,37 +43,28 @@ pub struct MintToken<'info> {
 }
 
 impl<'info> MintToken<'info> {
-    pub fn mint(
-        &mut self,
-    ) -> Result<()> {    
-        self.mint_token(800000, false)?;
-        self.mint_token(200000, true)
+    pub fn mint(&mut self) -> Result<()> {
+        let total_supply = self.listing.available_tokens.checked_add(self.listing.pool_mint_supply).unwrap();
+
+        let amount_to_mint = total_supply * 10u64.pow(self.mint.decimals as u32);
+        self.mint_token(amount_to_mint)
     }
 
-    pub fn mint_token(
-        &self,
-        amount: u64,
-        for_trade: bool
-    ) -> Result<()> {
-
-        let to = match for_trade {
-            true => self.trade_vault.to_account_info(),
-            false => self.mint_vault.to_account_info()
-        };
-
+    pub fn mint_token(&self, amount: u64) -> Result<()> {
         let accounts = MintTo {
             mint: self.mint.to_account_info(),
-            to,
-            authority: self.authority.to_account_info(), 
+            to: self.mint_vault.to_account_info(),
+            authority: self.signer.to_account_info(),
         };
 
-        let seeds = &[
-            &b"authority"[..],
-            &[self.listing.authority_bump]
-        ];
-        let signer_seeds = &[&seeds[..]];
+        // let seeds = &[&b"authority"[..], &[self.listing.authority_bump]];
+        // let signer_seeds = &[&seeds[..]];
 
-        let ctx = CpiContext::new_with_signer(self.token_program.to_account_info(), accounts, signer_seeds);
+        let ctx = CpiContext::new(
+            self.token_program.to_account_info(),
+            accounts,
+            // signer_seeds,
+        );
 
         mint_to(ctx, amount)
     }

@@ -84,7 +84,6 @@ describe('pump-fun', () => {
           listing,
           mint,
           mintVault,
-          tradeVault,
           tokenProgram: TOKEN_PROGRAM_ID,
           associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
