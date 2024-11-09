@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
-use anchor_spl::
-    token_interface::{Mint, TokenInterface};
+use anchor_spl:: 
+token_interface::{Mint, TokenInterface};
 
 use crate::{Listing, ANCHOR_DISCRIMINATOR, LISTING_SEED, MINT_SEED};
 
@@ -27,7 +27,7 @@ pub struct List<'info> {
     #[account(
         init,
         payer = signer,
-        seeds = [LISTING_SEED, name.as_bytes(), signer.key().as_ref()],
+        seeds = [LISTING_SEED, mint.key().as_ref()],
         bump,
         space = ANCHOR_DISCRIMINATOR + Listing::INIT_SPACE
     )]
@@ -47,13 +47,14 @@ impl<'info> List<'info> {
             name,
             mint: self.mint.key(),
             totat_mint_supply: 1000000,
-            funding_goal: 100,
+            funding_goal: 350,
             funding_raised: 0,
             available_tokens: 800000,
             pool_mint_supply: 200000,
             bump: bumps.mint,
             authority_bump: bumps.authority
         });
+    
         Ok(())
     }
 }
