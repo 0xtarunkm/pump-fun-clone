@@ -12,7 +12,7 @@ pub struct Listing {
     pub funding_raised: u64,
     pub available_tokens: u128,
     pub base_price: f64,
-    pub multiplier: f64,
     pub tokens_sold: u128,
     pub bump: u8,
+    pub vault_bump: u8
 }

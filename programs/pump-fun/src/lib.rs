@@ -20,7 +20,11 @@ pub mod pump_fun {
         ctx.accounts.list_and_mint_tokens(seed, name, &ctx.bumps)
     }
 
-    pub fn swap(ctx: Context<Swap>, amount: u128) -> Result<()> {
-        ctx.accounts.swap(amount)
+    pub fn buy(ctx: Context<Swap>, amount: u128) -> Result<()> {
+        ctx.accounts.buy(amount)
+    }
+
+    pub fn sell(ctx: Context<Swap>, amount: u128) -> Result<()> {
+        ctx.accounts.sell(amount)
     }
 }

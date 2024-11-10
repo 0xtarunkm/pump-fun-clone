@@ -4,16 +4,16 @@ use anchor_lang::prelude::*;
 pub enum CustomError {
     #[msg("Invalid Amount - it should be greater than 0")]
     InvalidAmount,
-    #[msg("Nahi hai tokens")]
+    #[msg("Insufficient Tokens")]
     InsufficientTokens,
-    #[msg("")]
+    #[msg("Calculation Error")]
     CalculationError,
-    #[msg("")]
+    #[msg("Already Minted")]
     AlreadyMinted,
-    #[msg("")]
+    #[msg("Overflow")]
     Overflow,
-    #[msg("")]
+    #[msg("Math Overflow")]
     MathOverflow,
-    #[msg("")]
+    #[msg("Invalid Calculation")]
     InvalidCalculation,
 }

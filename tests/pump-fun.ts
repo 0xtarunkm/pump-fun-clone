@@ -20,6 +20,7 @@ describe('pump-fun', () => {
 
   let mintVault: PublicKey;
   let userAta: PublicKey;
+  let vaultState: PublicKey;
 
   const [mint] = PublicKey.findProgramAddressSync(
     [Buffer.from('mint'), seed.toArrayLike(Buffer, 'le', 8)],
@@ -32,7 +33,7 @@ describe('pump-fun', () => {
   );
 
   const [solVault] = PublicKey.findProgramAddressSync(
-    [Buffer.from('vault'), Buffer.from(name)],
+    [Buffer.from('vault'), seed.toArrayLike(Buffer, 'be', 8)],
     program.programId
   );
 
@@ -56,6 +57,7 @@ describe('pump-fun', () => {
           listing,
           mint,
           mintVault,
+          solVault,
           tokenProgram: TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
           associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -70,7 +72,7 @@ describe('pump-fun', () => {
     }
   });
 
-  it('buys 10 tokens', async () => {
+  it('buys 5 tokens', async () => {
     userAta = getAssociatedTokenAddressSync(
       mint,
       wallet.publicKey,
@@ -82,7 +84,7 @@ describe('pump-fun', () => {
 
     try {
       const tx = await program.methods
-        .swap(new anchor.BN(10_000_000))
+        .buy(new anchor.BN(5_000_000))
         .accountsStrict({
           user: wallet.publicKey,
           listing,
@@ -104,7 +106,7 @@ describe('pump-fun', () => {
     }
   });
 
-  it('buys 10 more tokens', async () => {
+  it('buys 8 tokens', async () => {
     userAta = getAssociatedTokenAddressSync(
       mint,
       wallet.publicKey,
@@ -116,7 +118,275 @@ describe('pump-fun', () => {
 
     try {
       const tx = await program.methods
-        .swap(new anchor.BN(10_000_000))
+        .buy(new anchor.BN(8_000_000))
+        .accountsStrict({
+          user: wallet.publicKey,
+          listing,
+          mint,
+          mintVault,
+          solVault,
+          userAta,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        })
+        .rpc();
+
+      console.log('Swap completed successfully');
+      console.log('Transaction signature:', tx);
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+  });
+
+  it('buys 10 tokens', async () => {
+    userAta = getAssociatedTokenAddressSync(
+      mint,
+      wallet.publicKey,
+      false,
+      TOKEN_PROGRAM_ID
+    );
+
+    console.log('user ata ', userAta);
+
+    try {
+      const tx = await program.methods
+        .buy(new anchor.BN(10_000_000))
+        .accountsStrict({
+          user: wallet.publicKey,
+          listing,
+          mint,
+          mintVault,
+          solVault,
+          userAta,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        })
+        .rpc();
+
+      console.log('Swap completed successfully');
+      console.log('Transaction signature:', tx);
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+  });
+
+  it('buys 100 tokens', async () => {
+    userAta = getAssociatedTokenAddressSync(
+      mint,
+      wallet.publicKey,
+      false,
+      TOKEN_PROGRAM_ID
+    );
+
+    console.log('user ata ', userAta);
+
+    try {
+      const tx = await program.methods
+        .buy(new anchor.BN(100_000_000))
+        .accountsStrict({
+          user: wallet.publicKey,
+          listing,
+          mint,
+          mintVault,
+          solVault,
+          userAta,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        })
+        .rpc();
+
+      console.log('Swap completed successfully');
+      console.log('Transaction signature:', tx);
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+  });
+
+  it('buys 1000 tokens', async () => {
+    userAta = getAssociatedTokenAddressSync(
+      mint,
+      wallet.publicKey,
+      false,
+      TOKEN_PROGRAM_ID
+    );
+
+    console.log('user ata ', userAta);
+
+    try {
+      const tx = await program.methods
+        .buy(new anchor.BN(1000_000_000))
+        .accountsStrict({
+          user: wallet.publicKey,
+          listing,
+          mint,
+          mintVault,
+          solVault,
+          userAta,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        })
+        .rpc();
+
+      console.log('Swap completed successfully');
+      console.log('Transaction signature:', tx);
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+  });
+
+  it('buys 10000 tokens', async () => {
+    userAta = getAssociatedTokenAddressSync(
+      mint,
+      wallet.publicKey,
+      false,
+      TOKEN_PROGRAM_ID
+    );
+
+    console.log('user ata ', userAta);
+
+    try {
+      const tx = await program.methods
+        .buy(new anchor.BN(10000_000_000))
+        .accountsStrict({
+          user: wallet.publicKey,
+          listing,
+          mint,
+          mintVault,
+          solVault,
+          userAta,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        })
+        .rpc();
+
+      console.log('Swap completed successfully');
+      console.log('Transaction signature:', tx);
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+  });
+
+  it('sells 10000 tokens', async () => {
+    userAta = getAssociatedTokenAddressSync(
+      mint,
+      wallet.publicKey,
+      false,
+      TOKEN_PROGRAM_ID
+    );
+
+    console.log('user ata ', userAta);
+    try {
+      const tx = await program.methods
+        .sell(new anchor.BN(10000_000_000))
+        .accountsStrict({
+          user: wallet.publicKey,
+          listing,
+          mint,
+          mintVault,
+          solVault,
+          userAta,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        })
+        .rpc();
+
+      console.log('Swap completed successfully');
+      console.log('Transaction signature:', tx);
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+  });
+
+  it('sells 1000 tokens', async () => {
+    userAta = getAssociatedTokenAddressSync(
+      mint,
+      wallet.publicKey,
+      false,
+      TOKEN_PROGRAM_ID
+    );
+
+    console.log('user ata ', userAta);
+    try {
+      const tx = await program.methods
+        .sell(new anchor.BN(1000_000_000))
+        .accountsStrict({
+          user: wallet.publicKey,
+          listing,
+          mint,
+          mintVault,
+          solVault,
+          userAta,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        })
+        .rpc();
+
+      console.log('Swap completed successfully');
+      console.log('Transaction signature:', tx);
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+  });
+
+  it('sells 100 tokens', async () => {
+    userAta = getAssociatedTokenAddressSync(
+      mint,
+      wallet.publicKey,
+      false,
+      TOKEN_PROGRAM_ID
+    );
+
+    console.log('user ata ', userAta);
+    try {
+      const tx = await program.methods
+        .sell(new anchor.BN(100_000_000))
+        .accountsStrict({
+          user: wallet.publicKey,
+          listing,
+          mint,
+          mintVault,
+          solVault,
+          userAta,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        })
+        .rpc();
+
+      console.log('Swap completed successfully');
+      console.log('Transaction signature:', tx);
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+  });
+
+  it('sells 10 tokens', async () => {
+    userAta = getAssociatedTokenAddressSync(
+      mint,
+      wallet.publicKey,
+      false,
+      TOKEN_PROGRAM_ID
+    );
+
+    console.log('user ata ', userAta);
+    try {
+      const tx = await program.methods
+        .sell(new anchor.BN(10_000_000))
         .accountsStrict({
           user: wallet.publicKey,
           listing,

@@ -7,7 +7,7 @@ use anchor_spl::{
     token_interface::{transfer_checked, Mint, TokenAccount, TokenInterface, TransferChecked},
 };
 
-use crate::{utils::calculate_price, Listing, LISTING_SEED, MINT_SEED};
+use crate::{utils::calculate_price_fixed, Listing, LISTING_SEED, MINT_SEED, VAULT_SEED};
 
 #[derive(Accounts)]
 pub struct Swap<'info> {
@@ -21,8 +21,8 @@ pub struct Swap<'info> {
     pub mint: InterfaceAccount<'info, Mint>,
     #[account(
         mut,
-        seeds = [b"vault", listing.name.as_bytes()],
-        bump
+        seeds = [VAULT_SEED, listing.seed.to_be_bytes().as_ref()],
+        bump = listing.vault_bump
     )]
     pub sol_vault: SystemAccount<'info>,
     #[account(
@@ -52,21 +52,48 @@ pub struct Swap<'info> {
 }
 
 impl<'info> Swap<'info> {
-    pub fn swap(&mut self, amount: u128) -> Result<()> {    
-        let price = calculate_price(amount, self.listing.available_tokens, self.listing.base_price);
-        msg!("price {}", price);
+    pub fn buy(&mut self, amount: u128) -> Result<()> {    
+        let total_cost = calculate_price_fixed(
+            amount,
+            self.listing.available_tokens,
+            self.listing.base_price
+        );
+        
+        self.sol_transfer_to_vault(total_cost)?;
+        self.token_transfer_to_user(amount as f64)?;
 
-        self.sol_transfer(price)?;
-        self.token_transfer(amount as f64)?;
-
-        self.listing.available_tokens = self.listing.available_tokens.checked_sub(amount/10_u64.pow(9) as u128).unwrap();
-        msg!("available tokens {}", self.listing.available_tokens);
-        self.listing.tokens_sold = self.listing.tokens_sold.checked_add(amount).unwrap();
-        msg!("tokens sold {}", self.listing.tokens_sold);
+        self.listing.available_tokens = self.listing.available_tokens
+            .checked_sub(amount/10_u64.pow(6) as u128)
+            .unwrap();
+        self.listing.tokens_sold = self.listing.tokens_sold
+            .checked_add(amount)
+            .unwrap();
+        
         Ok(())
     }
 
-    fn sol_transfer(&self, amount: f64) -> Result<()> {
+    pub fn sell(&mut self, amount: u128) -> Result<()> {
+        let total_value = calculate_price_fixed(
+            amount,
+            self.listing.available_tokens + (amount/10_u64.pow(6) as u128),
+            self.listing.base_price
+        ) * 0.95;
+        
+        self.token_transfer_to_vault(amount as f64)?;
+        
+        self.sol_transfer_to_user(total_value)?;
+
+        self.listing.available_tokens = self.listing.available_tokens
+            .checked_add(amount/10_u64.pow(6) as u128)
+            .unwrap();
+        self.listing.tokens_sold = self.listing.tokens_sold
+            .checked_sub(amount)
+            .unwrap();
+        
+        Ok(())
+    }
+
+    fn sol_transfer_to_vault(&self, amount: f64) -> Result<()> {
         let cpi_program = self.system_program.to_account_info();
 
         let cpi_accounts = Transfer {
@@ -79,7 +106,27 @@ impl<'info> Swap<'info> {
         transfer(cpi_ctx, amount as u64)
     }
 
-    fn token_transfer(&self, amount: f64) -> Result<()> {
+    fn sol_transfer_to_user(&self, amount: f64) -> Result<()> {
+        let cpi_program = self.system_program.to_account_info();
+        let cpi_accounts = Transfer {
+            from: self.sol_vault.to_account_info(),
+            to: self.user.to_account_info(),
+        };
+        
+        let seeds = &[
+            VAULT_SEED,
+            &self.listing.seed.to_be_bytes(),
+            &[self.listing.vault_bump],
+        ];
+
+        let signer_seeds = &[&seeds[..]];
+        
+        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
+
+        transfer(cpi_ctx, amount as u64)
+    }
+
+    fn token_transfer_to_user(&self, amount: f64) -> Result<()> {
         let cpi_program = self.token_program.to_account_info();
 
         let cpi_accounts = TransferChecked {
@@ -98,6 +145,20 @@ impl<'info> Swap<'info> {
 
         let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
 
+        transfer_checked(cpi_ctx, amount as u64, self.mint.decimals)
+    }
+
+    fn token_transfer_to_vault(&self, amount: f64) -> Result<()> {
+        let cpi_program = self.token_program.to_account_info();
+
+        let cpi_accounts = TransferChecked {
+            from: self.user_ata.to_account_info(),
+            mint: self.mint.to_account_info(),
+            to: self.mint_vault.to_account_info(),
+            authority: self.user.to_account_info(),
+        };
+
+        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
         transfer_checked(cpi_ctx, amount as u64, self.mint.decimals)
     }
 }

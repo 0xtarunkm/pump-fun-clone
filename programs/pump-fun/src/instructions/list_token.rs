@@ -4,7 +4,7 @@ use anchor_spl::{
     token_interface::{mint_to, Mint, MintTo, TokenAccount, TokenInterface},
 };
 
-use crate::{Listing, ANCHOR_DISCRIMINATOR, LISTING_SEED, MINT_SEED};
+use crate::{Listing, ANCHOR_DISCRIMINATOR, LISTING_SEED, MINT_SEED, VAULT_SEED};
 
 #[derive(Accounts)]
 #[instruction(seed: u64)]
@@ -28,7 +28,7 @@ pub struct List<'info> {
         bump,
         space = ANCHOR_DISCRIMINATOR + Listing::INIT_SPACE
     )]
-    listing: Account<'info, Listing>,
+    listing: Box<Account<'info, Listing>>,
     #[account(
         init,
         payer = signer,
@@ -36,7 +36,12 @@ pub struct List<'info> {
         associated_token::authority = listing,
         associated_token::token_program = token_program
     )]
-    mint_vault: InterfaceAccount<'info, TokenAccount>,
+    mint_vault: Box<InterfaceAccount<'info, TokenAccount>>,
+    #[account(
+        seeds = [VAULT_SEED, seed.to_be_bytes().as_ref()],
+        bump
+    )]
+    pub sol_vault: SystemAccount<'info>,
 
     token_program: Interface<'info, TokenInterface>,
     associated_token_program: Program<'info, AssociatedToken>,
@@ -58,10 +63,10 @@ impl<'info> List<'info> {
             funding_raised: 0,
             available_tokens: 800_000,
             pool_mint_supply: 200_000,
-            base_price: 100_000.0,
-            multiplier: 1.05,
+            base_price: 0.001,
             tokens_sold: 0,
             bump: bumps.listing,
+            vault_bump: bumps.sol_vault
         });
 
         let total_supply = self
