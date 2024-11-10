@@ -15,58 +15,54 @@ describe('pump-fun', () => {
   const program = anchor.workspace.PumpFun as Program<PumpFun>;
   const wallet = provider.wallet as anchor.Wallet;
 
-  let name = 'elonmusk';
+  const seed = new anchor.BN(Math.floor(Math.random() * 1000000));
+  let name = 'elonmusk1';
 
-  const [authority] = PublicKey.findProgramAddressSync(
-    [Buffer.from('authority')],
-    program.programId
-  );
+  let mintVault: PublicKey;
+  let userAta: PublicKey;
 
   const [mint] = PublicKey.findProgramAddressSync(
-    [Buffer.from('mint'), Buffer.from(name), wallet.publicKey.toBuffer()],
+    [Buffer.from('mint'), seed.toArrayLike(Buffer, 'le', 8)],
     program.programId
   );
 
   const [listing] = PublicKey.findProgramAddressSync(
-    [Buffer.from('listing'), mint.toBuffer()],
+    [Buffer.from('listing'), seed.toArrayLike(Buffer, 'le', 8)],
     program.programId
   );
 
-  let mintVault: PublicKey;
-  let tradeVault: PublicKey;
-
-  before(async () => {
-    mintVault = getAssociatedTokenAddressSync(
-      mint,
-      authority,
-      true,
-      TOKEN_PROGRAM_ID
-    );
-
-    tradeVault = getAssociatedTokenAddressSync(
-      mint,
-      authority,
-      true,
-      TOKEN_PROGRAM_ID
-    );
-  });
+  const [solVault] = PublicKey.findProgramAddressSync(
+    [Buffer.from('vault'), Buffer.from(name)],
+    program.programId
+  );
 
   it('create a new listing', async () => {
+    console.log('listing account ', listing.toBase58());
+    console.log('mint account ', mint.toBase58());
+
+    mintVault = getAssociatedTokenAddressSync(
+      mint,
+      listing,
+      true,
+      TOKEN_PROGRAM_ID
+    );
+    console.log('mint vault ', mintVault.toBase58());
+
     try {
       const tx = await program.methods
-        .createListing(name)
+        .createListing(seed, name)
         .accountsStrict({
           signer: wallet.publicKey,
-          authority,
           listing,
           mint,
+          mintVault,
           tokenProgram: TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         })
         .rpc();
 
-      console.log('Mint created successfully:', mint);
-
+      console.log('Listing created successfully');
       console.log('Transaction signature:', tx);
     } catch (error) {
       console.error('Error:', error);
@@ -74,22 +70,67 @@ describe('pump-fun', () => {
     }
   });
 
-  it('mint token', async () => {
+  it('buys 10 tokens', async () => {
+    userAta = getAssociatedTokenAddressSync(
+      mint,
+      wallet.publicKey,
+      false,
+      TOKEN_PROGRAM_ID
+    );
+
+    console.log('user ata ', userAta);
+
     try {
       const tx = await program.methods
-        .mintToken()
+        .swap(new anchor.BN(10_000_000))
         .accountsStrict({
-          signer: wallet.publicKey,
-          authority,
+          user: wallet.publicKey,
           listing,
           mint,
           mintVault,
+          solVault,
+          userAta,
           tokenProgram: TOKEN_PROGRAM_ID,
-          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         })
-        .rpc({ commitment: 'confirmed' });
+        .rpc();
 
+      console.log('Swap completed successfully');
+      console.log('Transaction signature:', tx);
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+  });
+
+  it('buys 10 more tokens', async () => {
+    userAta = getAssociatedTokenAddressSync(
+      mint,
+      wallet.publicKey,
+      false,
+      TOKEN_PROGRAM_ID
+    );
+
+    console.log('user ata ', userAta);
+
+    try {
+      const tx = await program.methods
+        .swap(new anchor.BN(10_000_000))
+        .accountsStrict({
+          user: wallet.publicKey,
+          listing,
+          mint,
+          mintVault,
+          solVault,
+          userAta,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        })
+        .rpc();
+
+      console.log('Swap completed successfully');
       console.log('Transaction signature:', tx);
     } catch (error) {
       console.error('Error:', error);
