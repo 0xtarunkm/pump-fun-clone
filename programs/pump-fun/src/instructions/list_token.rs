@@ -28,7 +28,7 @@ pub struct List<'info> {
         bump,
         space = ANCHOR_DISCRIMINATOR + Listing::INIT_SPACE
     )]
-    listing: Box<Account<'info, Listing>>,
+    listing: Account<'info, Listing>,
     #[account(
         init,
         payer = signer,
@@ -36,12 +36,12 @@ pub struct List<'info> {
         associated_token::authority = listing,
         associated_token::token_program = token_program
     )]
-    mint_vault: Box<InterfaceAccount<'info, TokenAccount>>,
+    mint_vault: InterfaceAccount<'info, TokenAccount>,
     #[account(
         seeds = [VAULT_SEED, seed.to_be_bytes().as_ref()],
         bump
     )]
-    pub sol_vault: SystemAccount<'info>,
+    sol_vault: SystemAccount<'info>,
 
     token_program: Interface<'info, TokenInterface>,
     associated_token_program: Program<'info, AssociatedToken>,
@@ -55,6 +55,7 @@ impl<'info> List<'info> {
         name: String,
         bumps: &ListBumps,
     ) -> Result<()> {
+        // TODO: remove magic numbers
         self.listing.set_inner(Listing {
             name,
             seed,
@@ -66,14 +67,17 @@ impl<'info> List<'info> {
             base_price: 0.001,
             tokens_sold: 0,
             bump: bumps.listing,
-            vault_bump: bumps.sol_vault
+            vault_bump: bumps.sol_vault,
+            mint_bump: bumps.mint
         });
 
+        // TODO: add fees
         let total_supply = self
             .listing
             .available_tokens
             .checked_add(self.listing.pool_mint_supply)
             .unwrap();
+
         let amount_to_mint = total_supply * 10u64.pow(self.mint.decimals as u32) as u128;
         self.mint_token(amount_to_mint)
     }

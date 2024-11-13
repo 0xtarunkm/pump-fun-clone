@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
 
+// TODO: more clear error messages
 #[error_code]
 pub enum CustomError {
     #[msg("Invalid Amount - it should be greater than 0")]
