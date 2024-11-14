@@ -7,7 +7,7 @@ use anchor_spl::{
     token_interface::{transfer_checked, Mint, TokenAccount, TokenInterface, TransferChecked},
 };
 
-use crate::{utils::calculate_price_fixed, Listing, LISTING_SEED, MINT_SEED, VAULT_SEED};
+use crate::{curve::BondingCurve, Listing, LISTING_SEED, MINT_SEED, VAULT_SEED};
 
 #[derive(Accounts)]
 pub struct Swap<'info> {
@@ -28,7 +28,7 @@ pub struct Swap<'info> {
     #[account(
         mut,
         seeds = [LISTING_SEED, listing.seed.to_le_bytes().as_ref()],
-        bump,
+        bump = listing.bump,
     )]
     listing: Account<'info, Listing>,
     #[account(
@@ -54,7 +54,7 @@ impl<'info> Swap<'info> {
     pub fn buy(&mut self, amount: u128) -> Result<()> {
         // TODO: Add checks
         // TODO: Add Slippage
-        let total_cost = calculate_price_fixed(
+        let total_cost = BondingCurve::calculate_price_fixed(
             amount,
             self.listing.available_tokens,
             self.listing.base_price,
@@ -76,14 +76,13 @@ impl<'info> Swap<'info> {
     pub fn sell(&mut self, amount: u128) -> Result<()> {
         // TODO: Add checks
         // TODO: Add Slippage
-        let total_value = calculate_price_fixed(
+        let total_value = BondingCurve::calculate_price_fixed(
             amount,
             self.listing.available_tokens + (amount / 10_u64.pow(6) as u128),
             self.listing.base_price,
         );
 
         self.token_transfer_to_vault(amount as f64)?;
-
         self.sol_transfer_to_user(total_value)?;
 
         self.listing.available_tokens = self

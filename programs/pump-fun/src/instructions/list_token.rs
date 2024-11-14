@@ -68,7 +68,7 @@ impl<'info> List<'info> {
             tokens_sold: 0,
             bump: bumps.listing,
             vault_bump: bumps.sol_vault,
-            mint_bump: bumps.mint
+            mint_bump: bumps.mint,
         });
 
         // TODO: add fees
