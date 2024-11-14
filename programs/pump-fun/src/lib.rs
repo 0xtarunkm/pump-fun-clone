@@ -1,8 +1,8 @@
 pub mod constants;
+pub mod curve;
 pub mod error;
 pub mod instructions;
 pub mod state;
-pub mod utils;
 
 use anchor_lang::prelude::*;
 
