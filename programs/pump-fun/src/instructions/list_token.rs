@@ -1,7 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{
-    associated_token::AssociatedToken,
-    token_interface::{mint_to, Mint, MintTo, TokenAccount, TokenInterface},
+    associated_token::AssociatedToken, token_2022::spl_token_2022, token_interface::{mint_to, set_authority, Mint, MintTo, SetAuthority, TokenAccount, TokenInterface}
 };
 
 use crate::{Listing, ANCHOR_DISCRIMINATOR, LISTING_SEED, MINT_SEED, VAULT_SEED};
@@ -79,7 +78,26 @@ impl<'info> List<'info> {
             .unwrap();
 
         let amount_to_mint = total_supply * 10u64.pow(self.mint.decimals as u32) as u128;
-        self.mint_token(amount_to_mint)
+        self.mint_token(amount_to_mint)?;
+        self.freeze_token_supply()
+    }
+
+    pub fn freeze_token_supply(&self) -> Result<()> {
+        let accounts = SetAuthority {
+            account_or_mint: self.mint.to_account_info(),
+            current_authority: self.listing.to_account_info()
+        };
+
+        let seeds = &[
+            &b"listing"[..],
+            &self.listing.seed.to_le_bytes(),
+            &[self.listing.bump],
+        ];
+        let signer_seeds = &[&seeds[..]];
+
+        let cpi_ctx = CpiContext::new_with_signer(self.token_program.to_account_info(), accounts, signer_seeds);
+        
+        set_authority(cpi_ctx, spl_token_2022::instruction::AuthorityType::MintTokens, None)
     }
 
     pub fn mint_token(&self, amount: u128) -> Result<()> {
