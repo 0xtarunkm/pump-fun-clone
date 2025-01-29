@@ -5,13 +5,13 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-pump_fun = "CecW3x9Ztd5fAi4azx44ESz8Z9xjWqi5suv1LYHyKoao"
+pump_fun = "Ha4SgkAM6KLTsepyRUbA4PfYjn4Xu1T1cFobXxLdpSin"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "Devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

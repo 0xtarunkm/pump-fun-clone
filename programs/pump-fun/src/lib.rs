@@ -10,7 +10,7 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("CecW3x9Ztd5fAi4azx44ESz8Z9xjWqi5suv1LYHyKoao");
+declare_id!("Ha4SgkAM6KLTsepyRUbA4PfYjn4Xu1T1cFobXxLdpSin");
 
 #[program]
 pub mod pump_fun {
@@ -26,5 +26,9 @@ pub mod pump_fun {
 
     pub fn sell(ctx: Context<Swap>, amount: u128) -> Result<()> {
         ctx.accounts.sell(amount)
+    }
+
+    pub fn burn(ctx: Context<BurnTokens>, amount: u64) -> Result<()> {
+        ctx.accounts.burn_token(amount)
     }
 }
